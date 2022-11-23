@@ -17,6 +17,7 @@ import os
 client = pymongo.MongoClient("mongodb+srv://Admin:admin@finalproject.oqgvx2z.mongodb.net/?retryWrites=true&w=majority", server_api=ServerApi('1'))
 db = client.test
 
+# test line
 
 # This is a test to check connection
 if 'weather' not in db.list_collection_names():
