@@ -7,7 +7,7 @@ from pymongo.server_api import ServerApi
 # from Schemas import TemperatureSensorSchema
 from bson import json_util, ObjectId
 # from flask_cors import CORS
-from datetime import datetime, tzinfo, timezone
+from datetime import datetime, timedelta
 # loading private connection information from environment variables
 # from dotenv import load_dotenv
 
@@ -36,11 +36,13 @@ db.Environment.insert_one({
     "sound": 'quiet'
 })
 """
+dailyData  = list(
 db.Environment.aggregate([{
     '$match': {
-        'timestamp': {
-            '$gte': datetime.now() - 1,
-            '$lt': datetime.now()
+         'timestamp': {
+           '$gte': datetime.now() - timedelta(days=1),
+            '$lte': datetime.now()
+
         }
     }
 }, {
@@ -59,34 +61,35 @@ db.Environment.aggregate([{
     '$sort': {
         'timestamp': 1
     }
-}])
+}]))
+sortedHumidityData  = list(
+db.Environment.aggregate([{
+        '$match': {
+            'timestamp': {
+'$gte': datetime.now() - timedelta(days=1),
+'$lte': datetime.now()
 
+            }
+        }
+    }, {
+        '$group': {
+            '_id': '$humidity',
+            'measurementCount': {
+                '$count': {}
+            }
+        }
+    }, {
+        '$sort': {
+            'humidity': 1
+        }
+    }
+]))
+sortedSoundData  = list
 db.Environment.aggregate([{
     '$match': {
         'timestamp': {
-            '$gte': datetime.now() - 1,
-            '$lt': datetime.now()
-        }
-    }
-}, {
-    '$group': {
-        '_id': '$humidity',
-        'measurementCount': {
-            '$count': {}
-        }
-    }
-}, {
-    '$sort': {
-        'humidity': -1
-    }
-}
-])
-
-db.Environment.aggregate([{
-    '$match': {
-        'timestamp': {
-            '$gte': datetime.now() - 1,
-            '$lt': datetime.now()
+            '$gte': datetime.now() - timedelta(days=1),
+            '$lte': datetime.now()
         }
     }
 }, {
@@ -102,3 +105,6 @@ db.Environment.aggregate([{
     }
 }
 ])
+print(dailyData)
+print(sortedHumidityData)
+print(sortedSoundData)
