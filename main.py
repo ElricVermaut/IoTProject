@@ -7,8 +7,7 @@ from pymongo.server_api import ServerApi
 #from Schemas import TemperatureSensorSchema
 from bson import json_util, ObjectId
 #from flask_cors import CORS
-import datetime as dt
-
+from datetime import datetime, tzinfo, timezone
 # loading private connection information from environment variables
 #from dotenv import load_dotenv
 
@@ -28,10 +27,56 @@ if 'Environment' not in db.list_collection_names():
 
 # Insert dummy data
 db.Environment.insert_one({
-    "timestamp": dt.datetime.now(),
+    "timestamp": datetime.now(),
     "sensorId": 450,
     "temperature": 70,
     "humidity": 'humid',
     "brightness": 'bright',
     "sound": 'quiet'
   })
+
+db.Environment.aggregate([{
+    '$match': {
+         'timestamp': {
+           '$gte': datetime.now()-1,
+            '$lt': datetime.now()
+        }
+    }
+}, {
+    '$group': {
+        '_id': {
+            '$dateToString': {
+                'format': '%Y-%m-%dT%H',
+                'date': '$timestamp'
+            }
+        },
+        'averageTemp': {
+            '$avg': '$temperature'
+        }
+    }
+}, {
+    '$sort': {
+        'timestamp': 1
+    }
+}])
+
+db.Environment.aggregate([{
+        '$match': {
+            'timestamp': {
+                '$gte': datetime.now()-1,
+                '$lt': datetime.now()
+            }
+        }
+    }, {
+        '$group': {
+            '_id': '$humidity',
+            'measurementCount': {
+                '$count': {}
+            }
+        }
+    }, {
+        '$sort': {
+            'humidity': -1
+        }
+    }
+])
