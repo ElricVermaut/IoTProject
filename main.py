@@ -26,7 +26,7 @@ if 'Environment' not in db.list_collection_names():
                          timeseries={'timeField': 'timestamp', 'metaField': 'sensorId', 'granularity': 'minutes'})
 
 # Insert dummy data
-"""
+
 db.Environment.insert_one({
     "timestamp": datetime.now(),
     "sensorId": 450,
@@ -35,7 +35,7 @@ db.Environment.insert_one({
     "brightness": 'bright',
     "sound": 'quiet'
 })
-"""
+
 dailyData  = list(
 db.Environment.aggregate([{
     '$match': {
@@ -59,7 +59,7 @@ db.Environment.aggregate([{
     }
 }, {
     '$sort': {
-        'timestamp': 1
+        '_id': 1
     }
 }]))
 sortedHumidityData  = list(
@@ -84,7 +84,7 @@ db.Environment.aggregate([{
         }
     }
 ]))
-sortedSoundData  = list
+sortedSoundData  = list(
 db.Environment.aggregate([{
     '$match': {
         'timestamp': {
@@ -104,7 +104,57 @@ db.Environment.aggregate([{
         'sound': -1
     }
 }
-])
+]))
+sortedTemperatureData  = list(
+db.Environment.aggregate([{
+        '$match': {
+            'timestamp': {
+'$gte': datetime.now() - timedelta(days=1),
+'$lte': datetime.now()
+
+            }
+        }
+    }, {
+        '$group': {
+            '_id': '$temperature',
+            'measurementCount': {
+                '$count': {}
+            }
+        }
+    }, {
+        '$sort': {
+            'temperature': 1
+        }
+    }
+]))
+sortedBrightnessData  = list(
+db.Environment.aggregate([{
+        '$match': {
+            'timestamp': {
+                '$gte': datetime.now() - timedelta(days=1),
+                '$lte': datetime.now()
+            }
+        }
+    }, {
+        '$group': {
+            '_id': '$brightness',
+            'measurementCount': {
+                '$count': {}
+            }
+        }
+    }, {
+        '$sort': {
+            'brightness': 1
+        }
+    }
+]))
+print("Daily Data:")
 print(dailyData)
+print("Sort by humidity:")
 print(sortedHumidityData)
+print("Sort by sound:")
 print(sortedSoundData)
+print("Sort by temperature:")
+print(sortedTemperatureData)
+print("Sort by brightness:")
+print(sortedBrightnessData)
