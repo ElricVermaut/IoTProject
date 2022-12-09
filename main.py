@@ -1,4 +1,3 @@
-
 import pymongo as pymongo
 from flask import Flask, request, jsonify
 from flask_objectid_converter import ObjectIDConverter
@@ -7,7 +6,8 @@ from pymongo.server_api import ServerApi
 from Schemas import SensorSchema
 from bson import json_util, ObjectId
 from flask_cors import CORS
-from datetime import datetime, timedelta
+import datetime
+from datetime import timedelta
 
 # loading private connection information from environment variables
 from dotenv import load_dotenv
@@ -26,8 +26,10 @@ if 'Environment' not in db.list_collection_names():
     db.create_collection("Environment",
                          timeseries={'timeField': 'timestamp', 'metaField': 'sensorId', 'granularity': 'minutes'})
 
+
 def getTimeStamp():
     return datetime.datetime.today().replace(microsecond=0)
+
 
 app = Flask(__name__)
 app.url_map.converters['objectid'] = ObjectIDConverter
@@ -35,6 +37,7 @@ app.url_map.converters['objectid'] = ObjectIDConverter
 app.config['DEBUG'] = True
 # making our API accessible by any IP
 CORS(app)
+
 
 @app.route("/sensors/<int:sensorId>/", methods=["POST"])
 def add_value(sensorId):
@@ -45,7 +48,7 @@ def add_value(sensorId):
     data = request.json
     data.update({"timestamp": getTimeStamp(), "sensorId": sensorId})
 
-    db.weather.insert_one(data)
+    db.Environment.insert_one(data)
 
     data["_id"] = str(data["_id"])
     data["timestamp"] = data["timestamp"].strftime("%Y-%m-%dT%H:%M:%S")
@@ -62,7 +65,8 @@ def add_value(sensorId):
     """
     return data
 
-@app.route("/sensors/<int:sensorId>/temperatures")
+
+@app.route("/sensors/<int:sensorId>/temperatures")#, methods=["GET"])
 def get_all_temperatures(sensorId):
     start = request.args.get("start")
     end = request.args.get("end")
@@ -93,7 +97,7 @@ def get_all_temperatures(sensorId):
 
         query.update({"timestamp": {"$gte": start, "$lte": end}})
 
-    #sortedTemperatureData = list(
+    # sortedTemperatureData = list(
 
     data = list(
         db.Environment.aggregate([{
@@ -135,38 +139,38 @@ def get_all_temperatures(sensorId):
 if __name__ == "__main__":
     app.run(port=5001)
 
-dailyData  = list(
-db.Environment.aggregate([{
-    '$match': {
-         'timestamp': {
-           '$gte': datetime.now() - timedelta(days=1),
-            '$lte': datetime.now()
-
-        }
-    }
-}, {
-    '$group': {
-        '_id': {
-            '$dateToString': {
-                'format': '%Y-%m-%dT%H',
-                'date': '$timestamp'
-            }
-        },
-        'averageTemp': {
-            '$avg': '$temperature'
-        }
-    }
-}, {
-    '$sort': {
-        '_id': 1
-    }
-}]))
-sortedHumidityData  = list(
-db.Environment.aggregate([{
+dailyData = list(
+    db.Environment.aggregate([{
         '$match': {
             'timestamp': {
-'$gte': datetime.now() - timedelta(days=1),
-'$lte': datetime.now()
+                '$gte': datetime.now() - timedelta(days=1),
+                '$lte': datetime.now()
+
+            }
+        }
+    }, {
+        '$group': {
+            '_id': {
+                '$dateToString': {
+                    'format': '%Y-%m-%dT%H',
+                    'date': '$timestamp'
+                }
+            },
+            'averageTemp': {
+                '$avg': '$temperature'
+            }
+        }
+    }, {
+        '$sort': {
+            '_id': 1
+        }
+    }]))
+sortedHumidityData = list(
+    db.Environment.aggregate([{
+        '$match': {
+            'timestamp': {
+                '$gte': datetime.now() - timedelta(days=1),
+                '$lte': datetime.now()
 
             }
         }
@@ -182,34 +186,34 @@ db.Environment.aggregate([{
             'humidity': 1
         }
     }
-]))
-sortedSoundData  = list(
-db.Environment.aggregate([{
-    '$match': {
-        'timestamp': {
-            '$gte': datetime.now() - timedelta(days=1),
-            '$lte': datetime.now()
-        }
-    }
-}, {
-    '$group': {
-        '_id': '$sound',
-        'measurementCount': {
-            '$count': {}
-        }
-    }
-}, {
-    '$sort': {
-        'sound': -1
-    }
-}
-]))
-sortedTemperatureData  = list(
-db.Environment.aggregate([{
+    ]))
+sortedSoundData = list(
+    db.Environment.aggregate([{
         '$match': {
             'timestamp': {
-'$gte': datetime.now() - timedelta(days=1),
-'$lte': datetime.now()
+                '$gte': datetime.now() - timedelta(days=1),
+                '$lte': datetime.now()
+            }
+        }
+    }, {
+        '$group': {
+            '_id': '$sound',
+            'measurementCount': {
+                '$count': {}
+            }
+        }
+    }, {
+        '$sort': {
+            'sound': -1
+        }
+    }
+    ]))
+sortedTemperatureData = list(
+    db.Environment.aggregate([{
+        '$match': {
+            'timestamp': {
+                '$gte': datetime.now() - timedelta(days=1),
+                '$lte': datetime.now()
 
             }
         }
@@ -225,9 +229,9 @@ db.Environment.aggregate([{
             'temperature': 1
         }
     }
-]))
-sortedBrightnessData  = list(
-db.Environment.aggregate([{
+    ]))
+sortedBrightnessData = list(
+    db.Environment.aggregate([{
         '$match': {
             'timestamp': {
                 '$gte': datetime.now() - timedelta(days=1),
@@ -246,7 +250,7 @@ db.Environment.aggregate([{
             'brightness': 1
         }
     }
-]))
+    ]))
 print("Daily Data:")
 print(dailyData)
 print("Sort by humidity:")
