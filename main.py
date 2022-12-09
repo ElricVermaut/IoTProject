@@ -66,45 +66,46 @@ def add_value(sensorId):
     return data
 
 
-@app.route("/sensors/<int:sensorId>/temperatures")#, methods=["GET"])
+@app.route("/sensors/<int:sensorId>/temperatures")
 def get_all_temperatures(sensorId):
     start = request.args.get("start")
     end = request.args.get("end")
 
-    query = {"sensorId": sensorId}
-    if start is None and end is not None:
-        try:
-            end = datetime.datetime.strptime(end, "%Y-%m-%dT%H:%M:%S")
-        except Exception as e:
-            return {"error": "timestamp not following format %Y-%m-%dT%H:%M:%S"}, 400
+# ALL of this useless? to check later
 
-        query.update({"timestamp": {"$lte": end}})
-
-    elif end is None and start is not None:
-        try:
-            start = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S")
-        except Exception as e:
-            return {"error": "timestamp not following format %Y-%m-%dT%H:%M:%S"}, 400
-
-        query.update({"timestamp": {"$gte": start}})
-    elif start is not None and end is not None:
-        try:
-            start = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S")
-            end = datetime.datetime.strptime(end, "%Y-%m-%dT%H:%M:%S")
-
-        except Exception as e:
-            return {"error": "timestamp not following format %Y-%m-%dT%H:%M:%S"}, 400
-
-        query.update({"timestamp": {"$gte": start, "$lte": end}})
+    #query = {"sensorId": sensorId}
+    # if start is None and end is not None:
+    #     try:
+    #         end = datetime.datetime.strptime(end, "%Y-%m-%dT%H:%M:%S")
+    #     except Exception as e:
+    #         return {"error": "timestamp not following format %Y-%m-%dT%H:%M:%S"}, 400
+    #
+    #     query.update({"timestamp": {"$lte": end}})
+    #
+    # elif end is None and start is not None:
+    #     try:
+    #         start = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S")
+    #     except Exception as e:
+    #         return {"error": "timestamp not following format %Y-%m-%dT%H:%M:%S"}, 400
+    #
+    #     query.update({"timestamp": {"$gte": start}})
+    # elif start is not None and end is not None:
+    #     try:
+    #         start = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S")
+    #         end = datetime.datetime.strptime(end, "%Y-%m-%dT%H:%M:%S")
+    #
+    #     except Exception as e:
+    #         return {"error": "timestamp not following format %Y-%m-%dT%H:%M:%S"}, 400
+    #
+    #     query.update({"timestamp": {"$gte": start, "$lte": end}})
 
     # sortedTemperatureData = list(
 
-    data = list(
-        db.Environment.aggregate([{
+    data = list(db.Environment.aggregate([{
             '$match': {
                 'timestamp': {
-                    '$gte': datetime.now() - timedelta(days=1),
-                    '$lte': datetime.now()
+                    '$gte': getTimeStamp() - timedelta(days=1),
+                    '$lte': getTimeStamp()
 
                 }
             }
@@ -127,9 +128,48 @@ def get_all_temperatures(sensorId):
         if "_id" in data:
             del data["_id"]
             data.update({"sensorId": sensorId})
+            print(data)
 
-        for temp in data['temperatures']:
-            temp["timestamp"] = temp["timestamp"].strftime("%Y-%m-%dT%H:%M:%S")
+        #for temp in data['temperature']:
+            #temp["timestamp"] = temp["timestamp"].strftime("%Y-%m-%dT%H:%M:%S")
+
+        return data
+    else:
+        return {"error": "id not found"}, 404
+
+
+@app.route("/sensors/<int:sensorId>/sounds")
+def get_all_sounds(sensorId):
+    start = request.args.get("start")
+    end = request.args.get("end")
+
+    data = list(db.Environment.aggregate([{
+        '$match': {
+            'timestamp': {
+                '$gte': getTimeStamp() - timedelta(days=1),
+                '$lte': getTimeStamp()
+            }
+        }
+    }, {
+        '$group': {
+            '_id': '$sound',
+            'measurementCount': {
+                '$count': {}
+            }
+        }
+    }, {
+        '$sort': {
+            'sound': -1
+        }
+    }
+    ]))
+
+    if data:
+        data = data[0]
+        if "_id" in data:
+            del data["_id"]
+            data.update({"sensorId": sensorId})
+            print(data)
 
         return data
     else:
@@ -143,8 +183,8 @@ dailyData = list(
     db.Environment.aggregate([{
         '$match': {
             'timestamp': {
-                '$gte': datetime.now() - timedelta(days=1),
-                '$lte': datetime.now()
+                '$gte': getTimeStamp() - timedelta(days=1),
+                '$lte': getTimeStamp()
 
             }
         }
@@ -169,8 +209,8 @@ sortedHumidityData = list(
     db.Environment.aggregate([{
         '$match': {
             'timestamp': {
-                '$gte': datetime.now() - timedelta(days=1),
-                '$lte': datetime.now()
+                '$gte': getTimeStamp() - timedelta(days=1),
+                '$lte': getTimeStamp()
 
             }
         }
@@ -191,8 +231,8 @@ sortedSoundData = list(
     db.Environment.aggregate([{
         '$match': {
             'timestamp': {
-                '$gte': datetime.now() - timedelta(days=1),
-                '$lte': datetime.now()
+                '$gte': getTimeStamp() - timedelta(days=1),
+                '$lte': getTimeStamp()
             }
         }
     }, {
@@ -212,8 +252,8 @@ sortedTemperatureData = list(
     db.Environment.aggregate([{
         '$match': {
             'timestamp': {
-                '$gte': datetime.now() - timedelta(days=1),
-                '$lte': datetime.now()
+                '$gte': getTimeStamp() - timedelta(days=1),
+                '$lte': getTimeStamp()
 
             }
         }
@@ -234,8 +274,8 @@ sortedBrightnessData = list(
     db.Environment.aggregate([{
         '$match': {
             'timestamp': {
-                '$gte': datetime.now() - timedelta(days=1),
-                '$lte': datetime.now()
+                '$gte': getTimeStamp() - timedelta(days=1),
+                '$lte': getTimeStamp()
             }
         }
     }, {
