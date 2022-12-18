@@ -71,33 +71,33 @@ def get_all_temperatures(sensorId):
     start = request.args.get("start")
     end = request.args.get("end")
 
-# ALL of this useless? to check later
+# ALL of this useless? to check later - Tis not
 
-    #query = {"sensorId": sensorId}
-    # if start is None and end is not None:
-    #     try:
-    #         end = datetime.datetime.strptime(end, "%Y-%m-%dT%H:%M:%S")
-    #     except Exception as e:
-    #         return {"error": "timestamp not following format %Y-%m-%dT%H:%M:%S"}, 400
-    #
-    #     query.update({"timestamp": {"$lte": end}})
-    #
-    # elif end is None and start is not None:
-    #     try:
-    #         start = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S")
-    #     except Exception as e:
-    #         return {"error": "timestamp not following format %Y-%m-%dT%H:%M:%S"}, 400
-    #
-    #     query.update({"timestamp": {"$gte": start}})
-    # elif start is not None and end is not None:
-    #     try:
-    #         start = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S")
-    #         end = datetime.datetime.strptime(end, "%Y-%m-%dT%H:%M:%S")
-    #
-    #     except Exception as e:
-    #         return {"error": "timestamp not following format %Y-%m-%dT%H:%M:%S"}, 400
-    #
-    #     query.update({"timestamp": {"$gte": start, "$lte": end}})
+    query = {"sensorId": sensorId}
+    if start is None and end is not None:
+        try:
+            end = datetime.datetime.strptime(end, "%Y-%m-%dT%H:%M:%S")
+        except Exception as e:
+            return {"error": "timestamp not following format %Y-%m-%dT%H:%M:%S"}, 400
+
+        query.update({"timestamp": {"$lte": end}})
+
+    elif end is None and start is not None:
+        try:
+            start = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S")
+        except Exception as e:
+            return {"error": "timestamp not following format %Y-%m-%dT%H:%M:%S"}, 400
+
+        query.update({"timestamp": {"$gte": start}})
+    elif start is not None and end is not None:
+        try:
+            start = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S")
+            end = datetime.datetime.strptime(end, "%Y-%m-%dT%H:%M:%S")
+
+        except Exception as e:
+            return {"error": "timestamp not following format %Y-%m-%dT%H:%M:%S"}, 400
+
+        query.update({"timestamp": {"$gte": start, "$lte": end}})
 
     # sortedTemperatureData = list(
 
@@ -129,9 +129,6 @@ def get_all_temperatures(sensorId):
             del data["_id"]
             data.update({"sensorId": sensorId})
             print(data)
-
-        #for temp in data['temperature']:
-            #temp["timestamp"] = temp["timestamp"].strftime("%Y-%m-%dT%H:%M:%S")
 
         return data
     else:
