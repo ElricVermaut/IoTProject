@@ -27,7 +27,6 @@ API Endpoints
 There are multiple ways to send requests to the api.
 
 GET
-
 http://127.0.0.1:5001/sensors/450/temperatures Returns 
 {
     "measurementCount": 1,
@@ -41,6 +40,10 @@ http://127.0.0.1:5001/sensors/450/sounds Returns
 }
 
 POST
+
+IN NGROK
+http://8c91-69-17-239-181.ngrok.io/sensors/450/
+
 http://127.0.0.1:5001/sensors/450/ With params
 {
     "temperature": 100,
