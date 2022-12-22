@@ -6,7 +6,7 @@ from pymongo.server_api import ServerApi
 from Schemas import SensorSchema
 from bson import json_util, ObjectId
 from flask_cors import CORS
-import datetime
+import datetime as datetime
 from datetime import timedelta
 
 # loading private connection information from environment variables
@@ -106,12 +106,11 @@ def get_all_temperatures(sensorId):
                 'timestamp': {
                     '$gte': getTimeStamp() - timedelta(days=1),
                     '$lte': getTimeStamp()
-
                 }
             }
         }, {
             '$group': {
-                '_id': '$temperature',
+                '_id': 'temperature',
                 'measurementCount': {
                     '$count': {}
                 }
@@ -149,7 +148,7 @@ def get_all_sounds(sensorId):
         }
     }, {
         '$group': {
-            '_id': '$sound',
+            '_id': 'sound',
             'measurementCount': {
                 '$count': {}
             }
